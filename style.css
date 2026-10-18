@@ -1,0 +1,123 @@
+:root {
+  --bg: #f2f3f6; --card: #fff; --text: #191f28; --sub: #4e5968; --muted: #8b95a1; --line: #e5e8eb;
+  --accent: #f04452; --buy: #f04452; --buy-ink: #fff; --tab: #fff; --tab-on: #6c3ce1; --tab-on-ink: #fff;
+  --cond-bg: #f2f4f6; --card-cond-bg: #eef4ff; --card-cond-ink: #1b64da; --free: #0a8f5a;
+  --warn: #c2410c; --thumb-bg: #fff; --shadow: 0 1px 3px rgba(0,0,0,.05), 0 2px 10px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101418; --card: #1a1f26; --text: #eef1f4; --sub: #c3cad3; --muted: #8b95a1; --line: #2a313b;
+    --tab: #1a1f26; --tab-on: #8b5cf6; --cond-bg: #232a33; --card-cond-bg: #1c2a44; --card-cond-ink: #8fb6ff;
+    --free: #34d399; --warn: #fb923c; --thumb-bg: #f7f8fa; --shadow: none;
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  line-height: 1.4; -webkit-text-size-adjust: 100%; }
+
+/* 모바일은 한 줄 목록, PC는 같은 카드를 2~3열로. 전체 폭은 1240px 까지만 넓힌다 */
+.page { max-width: 1240px; margin: 0 auto; padding: 0 16px; }
+
+.top { max-width: 560px; margin: 0 auto; padding: 20px 0 4px; display: flex; flex-direction: column; gap: 14px; }
+.top h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.02em; text-align: center; }
+.openchat { display: block; background: #fee500; color: #191919; text-decoration: none; font-weight: 800; font-size: 16px;
+  text-align: center; padding: 15px 16px; border-radius: 14px; box-shadow: 0 2px 8px rgba(254,229,0,.45); }
+.openchat:hover { filter: brightness(.97); }
+.openchat[hidden] { display: none; }
+
+.controls-wrap { position: sticky; top: 0; z-index: 10; background: var(--bg); margin: 0 -16px; padding: 0 16px; }
+.controls-wrap.stuck { box-shadow: 0 4px 12px rgba(0,0,0,.06); }
+.controls { max-width: 560px; margin: 0 auto; padding: 12px 0 10px; display: flex; flex-direction: column; gap: 8px; }
+.chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: 1 0 auto; font: inherit; font-size: 14px; font-weight: 700; border: 1px solid var(--line); background: var(--tab);
+  color: var(--sub); padding: 9px 16px; border-radius: 999px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--tab-on); color: var(--tab-on-ink); border-color: var(--tab-on); }
+.filters { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 6px; }
+.filters input, .filters select { font: inherit; font-size: 14px; height: 38px; padding: 0 10px; border: 1px solid var(--line);
+  border-radius: 10px; background: var(--card); color: var(--text); min-width: 0; }
+.filters select { max-width: 130px; }
+
+.notices { max-width: 560px; margin: 2px auto 0; padding: 0; list-style: none; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+.notices li { padding-left: 10px; position: relative; }
+.notices li::before { content: "•"; position: absolute; left: 0; }
+.notices strong { color: var(--sub); font-weight: 600; }
+
+.count { max-width: 560px; margin: 10px auto 8px; color: var(--muted); font-size: 13px; }
+.count #count { color: var(--sub); font-weight: 700; }
+
+.grid { display: grid; grid-template-columns: 1fr; gap: 10px; max-width: 560px; margin: 0 auto; }
+
+/* 상품 카드: 카드 아무 곳이나 누르면 구매 링크, 원글 링크만 따로 */
+.card { position: relative; background: var(--card); border-radius: 14px; box-shadow: var(--shadow); border: 1px solid var(--line);
+  display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 12px; min-width: 0; }
+.card:hover { border-color: #c9ced6; }
+.thumb { position: relative; width: 96px; height: 96px; border-radius: 10px; overflow: hidden; background: var(--thumb-bg);
+  border: 1px solid var(--line); align-self: start; }
+.thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
+.thumb img.placeholder { object-fit: cover; }
+.sold-mask { position: absolute; inset: 0; background: rgba(255,255,255,.65); display: grid; place-items: center; }
+.sold-mask span { background: #333d4b; color: #fff; font-weight: 700; padding: 3px 10px; border-radius: 999px; font-size: 12px; }
+
+.body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.head { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); min-width: 0; }
+.mall { font-weight: 700; color: var(--sub); flex: none; }
+.cat { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.cat::before { content: "· "; }
+.time { margin-left: auto; flex: none; }
+.title { font-size: 15px; font-weight: 600; margin: 0; line-height: 1.4; min-height: calc(1.4em * 2);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: keep-all; overflow-wrap: anywhere; }
+.price { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 6px; }
+.rate { color: var(--accent); font-weight: 800; font-size: 17px; }
+.sale { font-weight: 800; font-size: 19px; letter-spacing: -0.02em; }
+.sale.none { font-size: 15px; color: var(--warn); }
+.regular { color: var(--muted); text-decoration: line-through; font-size: 12.5px; }
+.conds { margin: 2px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px; }
+.conds li { font-size: 12px; line-height: 1.35; background: var(--cond-bg); color: var(--sub); border-radius: 6px; padding: 3px 7px; max-width: 100%; }
+.conds li b { font-weight: 700; }
+.conds li.ship.free { color: var(--free); font-weight: 700; }
+.conds li.ship.unknown { color: var(--warn); }
+.conds li.card-cond { background: var(--card-cond-bg); color: var(--card-cond-ink); }
+
+.actions { margin-top: auto; padding-top: 4px; display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }
+.src-row { position: relative; z-index: 2; min-width: 0; overflow: hidden; }
+.src { max-width: 100%; overflow: hidden; text-overflow: ellipsis; font-size: 12.5px; color: var(--muted); text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; padding: 7px 0; display: inline-block; }
+.src:hover { color: var(--sub); }
+.buy-box { display: flex; align-items: center; gap: 8px; flex: none; }
+.buy { order: 2; display: inline-block; background: var(--buy); color: var(--buy-ink); text-decoration: none; font-weight: 800;
+  font-size: 14px; padding: 7px 16px; border-radius: 999px; }
+.buy::after { content: ""; position: absolute; inset: 0; border-radius: 14px; } /* 카드 전체를 누를 수 있게 */
+.card:hover .buy { filter: brightness(.95); }
+.buy.off { background: #8b95a1; }
+.aff { font-size: 10.5px; color: var(--muted); white-space: nowrap; }
+.card.soldout .title, .card.soldout .price { opacity: .55; }
+
+.empty { text-align: center; color: var(--muted); padding: 40px 0; }
+.to-top { position: fixed; right: 16px; bottom: 20px; width: 44px; height: 44px; border-radius: 50%; background: var(--text);
+  color: var(--bg); display: grid; place-items: center; text-decoration: none; font-size: 20px; box-shadow: 0 4px 12px rgba(0,0,0,.2); z-index: 20; }
+.to-top[hidden] { display: none; }
+.foot { max-width: 560px; margin: 28px auto 0; padding: 16px 0 32px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--line); }
+
+/* 태블릿·PC: 같은 카드를 여러 열로 (820px ≈ 2열, 1240px 이상 3열) */
+@media (min-width: 760px) {
+  .grid { max-width: none; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+  .count { max-width: none; }
+  .card { grid-template-columns: 112px minmax(0, 1fr); padding: 14px; gap: 14px; }
+  .thumb { width: 112px; height: 112px; }
+}
+@media (max-width: 360px) {
+  .page { padding: 0 12px; }
+  .controls-wrap { margin: 0 -12px; padding: 0 12px; }
+  .card { grid-template-columns: 80px minmax(0, 1fr); gap: 10px; padding: 10px; }
+  .thumb { width: 80px; height: 80px; }
+  .filters { grid-template-columns: 1fr 1fr; }
+  .filters input { grid-column: 1 / -1; }
+  .filters select { max-width: none; }
+  .chip { padding: 8px 12px; font-size: 13px; }
+}
+
+/* 쿠팡·토스 고지 문장은 일반 안내보다 진하게 */
+.notices li.disclosure { color: var(--sub); font-weight: 600; }
+.chip .n { margin-left: 5px; font-size: 12px; font-weight: 600; opacity: .7; }

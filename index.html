@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>오늘의 핫딜 모아보기</title>
+<meta name="description" content="관리자가 직접 확인한 핫딜 모음">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+<header class="top">
+  <h1>오늘의 핫딜 모아보기</h1>
+  <a class="openchat" id="openchat" hidden target="_blank" rel="noopener noreferrer">🔥 실시간 핫딜방 입장하기</a>
+</header>
+<div class="controls-wrap">
+  <section class="controls" aria-label="상품 찾기">
+    <div class="chips" id="malls" role="group" aria-label="쇼핑몰"></div>
+    <div class="filters">
+      <input id="q" type="search" placeholder="상품 검색" aria-label="상품 검색">
+      <select id="sort" aria-label="정렬">
+        <option value="latest">최신순</option>
+        <option value="price_asc">낮은 가격순</option>
+        <option value="price_desc">높은 가격순</option>
+        <option value="discount">할인율순</option>
+      </select>
+      <select id="category" aria-label="카테고리"><option value="">전체 카테고리</option></select>
+    </div>
+  </section>
+</div>
+<ul class="notices">
+  <li class="ad-notice" role="note">일부 구매 링크는 <strong>제휴(광고) 링크</strong>로, 구매 시 운영자가 수수료를 받을 수 있습니다. (구매 가격에는 영향 없음)</li>
+  <li>가격·배송·할인 조건은 바뀔 수 있습니다. 가격이 다르면 구매를 권하지 않습니다.</li>
+</ul>
+<main>
+  <p class="count"><span id="count"></span> <span class="updated" id="updated"></span></p>
+  <section class="grid" id="grid" aria-live="polite"></section>
+  <p class="empty" id="empty" hidden>조건에 맞는 상품이 없습니다.</p>
+</main>
+<footer class="foot">
+  핫딜은 품절되거나 가격이 바뀌면 종료됩니다. 가격·배송·할인 조건은 판매처 사정에 따라 바뀔 수 있으니 구매 전 판매 페이지에서 꼭 확인하세요.
+</footer>
+</div>
+<a href="#" class="to-top" id="to-top" hidden aria-label="맨 위로">↑</a>
+<script src="deals.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
