@@ -192,12 +192,17 @@
   $("sort").addEventListener("change", function (e) { state.sort = e.target.value; render(); });
   $("category").addEventListener("change", function (e) { state.category = e.target.value; render(); });
 
-  if (window.HOTDEAL_DATA) {
-    start(window.HOTDEAL_DATA);
-  } else {
-    fetch("deals.json", { cache: "no-store" })
+  // 인터넷 주소로 열면 항상 최신 deals.json 을 새로 받는다 (GitHub Pages 는 파일을 브라우저에 10분간 저장시켜
+  // deals.js 로는 방금 올린 상품이 안 보일 수 있음). 파일을 더블클릭(file://)했거나 받지 못하면 deals.js 를 쓴다.
+  function fallback() {
+    if (window.HOTDEAL_DATA) start(window.HOTDEAL_DATA);
+    else $("count").textContent = "상품 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.";
+  }
+  if (/^https?:$/.test(location.protocol)) {
+    fetch("deals.json?t=" + Date.now(), { cache: "no-store" })
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(start)
-      .catch(function () { $("count").textContent = "상품 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."; });
+      .then(start, fallback);
+  } else {
+    fallback();
   }
 })();
