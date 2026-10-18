@@ -134,7 +134,8 @@
     list.forEach(function (d) { grid.appendChild(card(d)); });
     $("count").textContent = "상품 " + list.length + "개";
     $("empty").hidden = list.length > 0;
-    $("empty").textContent = state.deals.length && !state.q && !state.category ? "이 탭에는 아직 상품이 없습니다." : "조건에 맞는 상품이 없습니다.";
+    $("empty").textContent = !state.deals.length ? "아직 등록된 핫딜이 없습니다. 곧 올라올 예정이에요!"
+      : (!state.q && !state.category ? "이 탭에는 아직 상품이 없습니다." : "조건에 맞는 상품이 없습니다.");
   }
 
   function chips() {
