@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>내 가내신 계산기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: 중학생에게 말 거는 친절하고 차분한 말투, 숫자는 크게 설명은 짧게
+   IDEA: 손에 쥔 개인 성적표 — 내 점수를 넣고 "이렇게 받으면?"을 직접 굴려 보는 카드
+   PICTURE: 200점 막대 위에 영역별 점수가 쌓이고 최저~최고 범위가 표시되는 큰 가내신 숫자
+   COLOUR: 흰 바탕과 학교 파랑 #2456a6, 지원색 하늘 #dfe9f7, 강조 연필 빨강 #d6453d, 넘음 초록 #1e8a5a
+   TYPE: IBM Plex Sans KR 400/600/700, 숫자는 tabular */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#0f1420);--card:light-dark(#f5f8fc,#161d2c);--ink:light-dark(#14213d,#e8edf6);--mute:light-dark(#5d6b82,#9aa7bd);--line:light-dark(#d9e2ee,#2a3550);--blue:light-dark(#2456a6,#7aa7ee);--sky:light-dark(#dfe9f7,#1c2a45);--red:light-dark(#d6453d,#ff7b72);--green:light-dark(#1e8a5a,#5fd09a);--gold:light-dark(#b7791f,#e3b25a)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "IBM Plex Sans KR",system-ui,sans-serif;overflow-x:clip}
+.wrap{max-width:760px;margin:0 auto;padding:clamp(20px,4vw,40px) max(4vw,16px) 56px}
+h1{font-size:clamp(28px,6vw,40px);line-height:1.1;margin:0 0 6px;text-wrap:balance}
+h2{font-size:20px;margin:0 0 12px}
+.sub{color:var(--mute);font-size:14px;margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-top:18px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button,.btn{font:600 16px/1 inherit;font-family:inherit;min-height:46px;padding:0 18px;border-radius:12px;border:1px solid var(--blue);background:var(--blue);color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+button.ghost,.btn.ghost{background:transparent;color:var(--blue)}
+button:focus-visible,.btn:focus-within,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+input[type=text],input[type=number]{font:16px inherit;font-family:inherit;min-height:46px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+#code{flex:1 1 260px}
+.msg{font-size:14px;margin:10px 0 0;color:var(--mute)}.msg.bad{color:var(--red)}.msg.ok{color:var(--green)}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:end}
+.big{font-size:clamp(56px,16vw,88px);font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--blue);white-space:nowrap}
+.big small{font-size:18px;color:var(--mute);font-weight:600;margin-left:6px}
+.label{font-size:13px;color:var(--mute);font-weight:600}
+.range{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.bar{position:relative;height:30px;border-radius:9px;background:var(--line);display:flex;overflow:hidden;margin:18px 0 8px}
+.bar span{height:100%}
+.legend{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;font-size:13px}
+.legend b{display:block;font-size:17px;font-variant-numeric:tabular-nums}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:0}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:left}
+th{font-size:13px;color:var(--mute);font-weight:600}
+td.n,th.n{text-align:right;white-space:nowrap}
+.est{color:var(--mute);font-style:italic}
+.tag{font-size:12px;padding:2px 8px;border-radius:99px;background:var(--sky);color:var(--blue);white-space:nowrap}
+.tag.est{background:transparent;border:1px dashed var(--line)}
+.slider{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+input[type=range]{flex:1 1 220px;accent-color:var(--blue);height:44px}
+.result{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;margin-top:10px}
+.result .v{font-size:40px;font-weight:700;font-variant-numeric:tabular-nums}
+.up{color:var(--green);font-weight:700}.down{color:var(--red);font-weight:700}
+.need{font-weight:700;white-space:nowrap}.need.no{color:var(--red)}.need.yes{color:var(--green)}
+.demo{font-size:13px;color:var(--gold);font-weight:600;margin:0 0 6px}
+details{margin-top:18px;color:var(--mute);font-size:14px}summary{cursor:pointer;font-weight:600;color:var(--ink);min-height:44px;display:flex;align-items:center}
+details li{margin:6px 0}
+.hidden{display:none}
+@media(max-width:600px){.hero{grid-template-columns:1fr}.legend{grid-template-columns:repeat(2,minmax(0,1fr))}table{font-size:14px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>내 가내신 계산기</h1>
+  <p class="sub">2028학년도 경기도 고입 · 경기도교육청 반영지침 예고안(2026.3.) 기준 · 상담용 예상치예요 (공식 내신 아님)</p>
+
+  <section class="card" id="load">
+    <h2>내 성적 불러오기</h2>
+    <p class="sub" style="margin-bottom:12px">선생님이 보내 준 <b>내 링크</b>를 누르거나 상담 카드 QR을 휴대폰 카메라로 찍으면 바로 내 성적이 나와요. 안 되면 아래 버튼으로 QR 사진을 불러오거나 개인 코드를 붙여넣으세요. 성적은 이 휴대폰에만 남고 어디에도 보내지지 않아요.</p>
+    <div class="row">
+      <label class="btn" for="photo">카드 QR 사진으로 불러오기</label>
+      <input id="photo" type="file" accept="image/*" class="hidden">
+    </div>
+    <div class="row" style="margin-top:10px">
+      <input id="code" type="text" inputmode="numeric" placeholder="개인 코드 붙여넣기 (숫자 69자리)" autocomplete="off">
+      <button id="go" class="ghost">불러오기</button>
+    </div>
+    <p class="msg" id="msg"></p>
+  </section>
+
+  <section class="card">
+    <p class="demo" id="demo">예시 학생 화면이에요 — 내 코드를 불러오면 바뀌어요</p>
+    <div class="hero">
+      <div><div class="label">가내신 (200점 만점)</div><div class="big" id="total">-</div></div>
+      <div><div class="label">범위 (최저 ~ 최고)</div><div class="range" id="range">-</div>
+        <div class="sub" style="font-size:13px">남은 학기를 지금까지 가장 낮은/높은 학기 수준으로 받았을 때</div></div>
+    </div>
+    <div class="bar" id="bar" aria-hidden="true"></div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <section class="card">
+    <h2>학기별 일반교과</h2>
+    <table><thead><tr><th>학기</th><th>상태</th><th class="n">점수</th><th class="n">배점</th></tr></thead><tbody id="sems"></tbody></table>
+    <p class="sub" style="margin-top:10px;font-size:13px">성적이 없는 학기는 2학년 성적과 같다고 보고 계산해요 (2-2·3-1은 2-1, 3-2는 2-2와 같게 · 3-1이 나오면 3-2는 3-1과 같게).</p>
+  </section>
+
+  <section class="card">
+    <h2>남은 학기 전과목 <span id="xv">90</span>점이면?</h2>
+    <div class="slider">
+      <input type="range" id="xr" min="40" max="100" step="1" value="90" aria-label="남은 학기 전과목 점수">
+      <input type="number" id="xn" min="0" max="100" step="1" value="90" style="width:96px" aria-label="점수 직접 입력">
+    </div>
+    <div class="result"><span class="v" id="xt">-</span><span id="xd"></span></div>
+    <p class="sub" id="xnote" style="font-size:13px"></p>
+  </section>
+
+  <section class="card">
+    <h2>목표 점수 계산</h2>
+    <div class="row"><label for="tg" class="label" style="font-size:15px">목표 가내신</label>
+      <input type="number" id="tg" step="0.1" min="0" max="200" value="190" style="width:120px"></div>
+    <p id="tgr" style="font-size:18px;font-weight:600;margin:12px 0 6px"></p>
+    <table style="margin-top:8px"><thead><tr><th>학교</th><th class="n">참고 점수</th><th class="n">지금 차이</th><th class="n">넘으려면 (남은 학기)</th></tr></thead><tbody id="sch"></tbody></table>
+    <p class="sub" style="margin-top:10px;font-size:13px">참고 점수는 예전(2026학년도) 기준 예상치라 봉사 점수가 있던 시절 자료예요. 실제 합격선과 다를 수 있으니 담임 선생님과 꼭 함께 확인하세요.</p>
+  </section>
+
+  <details>
+    <summary>이 계산기는 이렇게 계산해요</summary>
+    <ul>
+      <li>일반교과 120점: 1-2(12) · 2-1(24) · 2-2(24) · 3-1(30) · 3-2(30). 학기 점수 = 기본점수 + 성취도 평균 × 계수 + 원점수 평균 × 계수.</li>
+      <li>체육·예술 30점 = 10 + 20 × (3×A + 2×B + C) ÷ (3 × 과목 수). "전과목 ○○점"일 때 남은 학기 체육·예술은 80점 이상 A, 60점 이상 B, 그 밖은 C로 봐요.</li>
+      <li>출결 40점과 학교활동 10점은 선생님이 넣어 준 지금 점수 그대로예요.</li>
+      <li>"넘으려면"은 남은 학기 모든 과목을 같은 점수로 받는다고 할 때 목표 이상이 되는 가장 낮은 점수예요.</li>
+    </ul>
+  </details>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script>
+{
+const ACT=['1-2','2-1','2-2','3-1','3-2'];
+const COEF={'1-2':[12,4,0.8,0.04],'2-1':[24,8,1.6,0.08],'2-2':[24,8,1.6,0.08],'3-1':[30,10,2,0.1],'3-2':[30,10,2,0.1]};
+const SRC={'1-2':['1-2','2-1'],'2-1':['2-1','2-2'],'2-2':['2-2','2-1'],'3-1':['3-1','2-1','2-2'],'3-2':['3-2','3-1','2-2','2-1']};
+const NAME={'1-2':'1학년 2학기','2-1':'2학년 1학기','2-2':'2학년 2학기','3-1':'3학년 1학기','3-2':'3학년 2학기'};
+const SCHOOLS=[['장기고',194.1],['통진고',188.9],['운양고',183.8],['운유고',182.9],['하성고',180.4],['김포고',176],['사우고',168.7],['김포제일고',167.1],['고촌고',160.6],['풍무고',151.3],['김포호수고',126.63]];
+const DEMO='1'+'080720036200'+'080704034210'+'0'.repeat(36)+'40000'+'085';   // 예시 학생(가상)
+const r3=x=>Math.round(parseFloat((x*1000).toPrecision(15)))/1000;
+const f2=x=>(Math.round(parseFloat((x*100).toPrecision(15)))/100).toFixed(2);
+const sgn=x=>(x>0?'+':x<0?'−':'')+Math.abs(x).toFixed(2);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+
+function parse(code){
+  const m=String(code||'').replace(/\s/g,'').match(/1\d{68}/);
+  if(!m)return null;
+  const c=m[0],sem={};
+  ACT.forEach((a,i)=>{const s=c.slice(1+i*12,13+i*12);
+    sem[a]={n:+s.slice(0,2),sum:+s.slice(2,7)/10,ach:+s.slice(7,9),A:+s[9],B:+s[10],C:+s[11]};});
+  return {code:c,sem,att:+c.slice(61,66)/1000,school:+c.slice(66,69)/10};
+}
+function calc(d){
+  const act=a=>d.sem[a].n>0, sc={},src={};
+  ACT.forEach(a=>{src[a]=SRC[a].find(act)||null;});
+  const semScore=(a,from)=>{const [b,base,ka,kb]=COEF[a],s=d.sem[from];return r3(base+(s.ach/s.n)*ka+(s.sum/s.n)*kb);};
+  ACT.forEach(a=>{sc[a]=src[a]?semScore(a,src[a]):null;});
+  if(ACT.some(a=>sc[a]===null))return null;
+  const gen=r3(ACT.reduce((t,a)=>t+sc[a],0));
+  const cnt={A:0,B:0,C:0};let actA=0,actB=0,actC=0,rem=0;
+  ACT.forEach(a=>{const s=d.sem[src[a]];cnt.A+=s.A;cnt.B+=s.B;cnt.C+=s.C;
+    if(act(a)){actA+=s.A;actB+=s.B;actC+=s.C}else rem+=s.A+s.B+s.C;});
+  const artOf=(A,B,C)=>A+B+C?r3(10+20*(3*A+2*B+C)/(3*(A+B+C))):null;
+  const art=artOf(cnt.A,cnt.B,cnt.C);
+  if(art===null)return null;
+  const total=r3(gen+art+d.att+d.school);
+  const rates=ACT.filter(act).map(a=>sc[a]/COEF[a][0]);
+  const genAt=rate=>r3(ACT.reduce((t,a)=>t+(act(a)?sc[a]:r3(COEF[a][0]*rate)),0));
+  const lo=r3(genAt(Math.min(...rates))+art+d.att+d.school), hi=r3(genAt(Math.max(...rates))+art+d.att+d.school);
+  const remSem=ACT.filter(a=>!act(a));
+  const atX=X=>{const g=1+(X>=60)+(X>=70)+(X>=80)+(X>=90);
+    const gx=r3(ACT.reduce((t,a)=>{if(act(a))return t+sc[a];const [b,base,ka,kb]=COEF[a];return t+r3(base+g*ka+X*kb)},0));
+    const ax=artOf(actA+(X>=80?rem:0),actB+(X>=60&&X<80?rem:0),actC+(X<60?rem:0));
+    return {gen:gx,art:ax,total:r3(gx+ax+d.att+d.school)};};
+  const need=T=>{if(!remSem.length)return total>=T?{t:'이미 넘음',k:'yes'}:{t:'남은 학기 없음',k:'no'};
+    for(let X=0;X<=100;X++){if(atX(X).total>=T-1e-9)return X===0?{t:'어떤 점수여도 넘음',k:'yes'}:{t:'전과목 '+X+'점 이상',k:''};}
+    return {t:'100점이어도 부족',k:'no'};};
+  return {sc,src,act,gen,art,total,lo,hi,remSem,atX,need,att:d.att,school:d.school};
+}
+
+let D=null,R=null,isDemo=true;
+function load(code,fromUser){
+  const d=parse(code),r=d&&calc(d);
+  if(!r){if(fromUser)setMsg('코드를 읽지 못했어요. 숫자 69자리가 맞는지 확인해 주세요.','bad');return false;}
+  D=d;R=r;isDemo=!fromUser&&code===DEMO;
+  if(fromUser){try{localStorage.setItem('gn-code',d.code)}catch(e){}setMsg('내 성적을 불러왔어요.','ok');}
+  render();return true;
+}
+function setMsg(t,k){const m=$('msg');m.textContent=t;m.className='msg '+(k||'');}
+
+function render(){
+  $('demo').style.display=isDemo?'':'none';
+  $('total').innerHTML=esc(f2(R.total))+'<small>점</small>';
+  $('range').textContent=f2(R.lo)+' ~ '+f2(R.hi);
+  const parts=[['일반교과',R.gen,120,'var(--blue)'],['체육·예술',R.art,30,'#4f8fd6'],['출결',R.att,40,'var(--green)'],['학교활동',R.school,10,'var(--gold)']];
+  $('bar').innerHTML=parts.map(p=>`<span style="width:${p[1]/2}%;background:${p[3]}"></span>`).join('');
+  $('legend').innerHTML=parts.map(p=>`<div><span class="dot" style="background:${p[3]}"></span>${esc(p[0])}<b>${esc(p[1].toFixed(p[0]==='학교활동'?1:3))} <span class="sub" style="font-size:12px">/ ${p[2]}</span></b></div>`).join('');
+  $('sems').innerHTML=ACT.map(a=>{const real=R.act(a);
+    const tag=real?'<span class="tag">실제</span>':`<span class="tag est">${esc(R.src[a])}${/1$/.test(R.src[a])?'과':'와'} 같게</span>`;
+    return `<tr><td>${esc(NAME[a])}</td><td>${tag}</td><td class="n${real?'':' est'}">${esc(R.sc[a].toFixed(3))}</td><td class="n">${COEF[a][0]}</td></tr>`;}).join('');
+  renderX();renderTarget();
+}
+function renderX(){
+  let X=Math.max(0,Math.min(100,+$('xn').value||0));
+  $('xv').textContent=X;
+  if(!R.remSem.length){$('xt').textContent=f2(R.total);$('xd').textContent='남은 학기가 없어요';$('xnote').textContent='';return;}
+  const r=R.atX(X),dlt=r.total-R.total;
+  $('xt').textContent=f2(r.total);
+  $('xd').innerHTML=`<span class="${dlt>0?'up':dlt<0?'down':''}">${esc(sgn(dlt))}</span> <span class="sub">지금 가내신 ${esc(f2(R.total))}과 비교</span>`;
+  $('xnote').textContent=`남은 학기(${R.remSem.join(', ')})의 모든 과목을 ${X}점, 체육·예술은 ${X>=80?'A':X>=60?'B':'C'}로 받는다고 계산했어요. 일반교과 ${r.gen.toFixed(3)} · 체육·예술 ${r.art.toFixed(3)}.`;
+}
+function renderTarget(){
+  const T=parseFloat($('tg').value);
+  if(isFinite(T)){const n=R.need(T);$('tgr').innerHTML=`${esc(T)}점을 넘으려면 → <span class="need ${n.k}">${esc(n.t)}</span>`;}
+  else $('tgr').textContent='';
+  $('sch').innerHTML=SCHOOLS.map(([nm,v])=>{const d=R.total-v,n=R.need(v);
+    return `<tr><td>${esc(nm)}</td><td class="n">${esc(v)}</td><td class="n ${d>=0?'up':'down'}">${esc(sgn(d))}</td><td class="n"><span class="need ${n.k}">${esc(n.t)}</span></td></tr>`;}).join('');
+}
+
+async function readQR(file){
+  if(typeof jsQR!=='function'){setMsg('QR 읽기 도구를 불러오지 못했어요. 코드를 붙여넣어 주세요.','bad');return;}
+  setMsg('사진에서 QR을 찾는 중…');
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=url;});
+    const cv=document.createElement('canvas'),cx=cv.getContext('2d',{willReadFrequently:true});
+    for(const M of [1000,1600,700,2200]){
+      const k=Math.min(1,M/Math.max(img.width,img.height));cv.width=Math.round(img.width*k);cv.height=Math.round(img.height*k);
+      cx.drawImage(img,0,0,cv.width,cv.height);
+      const res=jsQR(cx.getImageData(0,0,cv.width,cv.height).data,cv.width,cv.height,{inversionAttempts:'attemptBoth'});
+      if(res&&res.data){if(load(res.data,true))return;setMsg('QR은 읽었지만 내신 코드가 아니에요. 상담 카드의 QR인지 확인해 주세요.','bad');return;}
+    }
+    setMsg('QR을 찾지 못했어요. QR이 화면에 크고 선명하게 나오도록 다시 찍어 주세요.','bad');
+  }catch(e){setMsg('사진을 열지 못했어요. 다른 사진으로 해 보세요.','bad');}
+  finally{URL.revokeObjectURL(url);}
+}
+
+$('photo').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(f)readQR(f);e.target.value='';});
+$('go').addEventListener('click',()=>load($('code').value,true));
+$('code').addEventListener('keydown',e=>{if(e.key==='Enter')load($('code').value,true);});
+$('xr').addEventListener('input',()=>{$('xn').value=$('xr').value;renderX();});
+$('xn').addEventListener('input',()=>{const v=+$('xn').value;if(v>=40&&v<=100)$('xr').value=v;renderX();});
+$('tg').addEventListener('input',renderTarget);
+
+const fromHash=()=>{const m=decodeURIComponent(location.hash||'').match(/1\d{68}/);return m?m[0]:null;};
+window.addEventListener('hashchange',()=>{const h=fromHash();if(h)load(h,true);});
+let saved=null;try{saved=localStorage.getItem('gn-code')}catch(e){}
+const h0=fromHash();
+if(h0&&load(h0,true))setMsg('내 링크로 성적을 불러왔어요.','ok');
+else if(!(saved&&load(saved,true)))load(DEMO,false);
+else if(R&&!isDemo)setMsg('지난번에 불러온 내 성적이에요.','ok');
+window.__gn={parse,calc};
+}
+</script>
+</body>
+</html>
