@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>QR 쪽지 만들기 (선생님용)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: 바쁜 담임 선생님에게 짧고 분명하게
+   IDEA: 엑셀에서 복사 → 붙여넣기 → 인쇄, 세 단계로 끝나는 쪽지 공장
+   PICTURE: 가위선으로 나뉜 이름표 쪽지에 QR이 하나씩
+   COLOUR: 학생 계산기와 같은 학교 파랑 #2456a6, 하늘 #dfe9f7, 경고 빨강 #d6453d, 확인 초록 #1e8a5a
+   TYPE: IBM Plex Sans KR 400/600/700 */
+:root{color-scheme:light;--bg:#fff;--card:#f5f8fc;--ink:#14213d;--mute:#5d6b82;--line:#d9e2ee;--blue:#2456a6;--sky:#dfe9f7;--red:#d6453d;--green:#1e8a5a;--gold:#b7791f}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "IBM Plex Sans KR",system-ui,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:clamp(20px,4vw,40px) max(4vw,16px) 56px}
+h1{font-size:clamp(26px,5vw,36px);line-height:1.15;margin:0 0 6px}
+h2{font-size:19px;margin:0 0 10px}
+.sub{color:var(--mute);font-size:14px;margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-top:18px}
+ol{margin:0 0 12px;padding-left:22px}ol li{margin:4px 0}
+textarea{width:100%;min-height:150px;font:13px/1.4 ui-monospace,Menlo,Consolas,monospace;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--ink);resize:vertical}
+.row{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-top:12px}
+button{font:600 16px/1 inherit;font-family:inherit;min-height:46px;padding:0 18px;border-radius:12px;border:1px solid var(--blue);background:var(--blue);color:#fff;cursor:pointer}
+button.ghost{background:transparent;color:var(--blue)}
+button:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+label.ck{display:inline-flex;gap:8px;align-items:center;min-height:44px;cursor:pointer}
+label.ck input{width:20px;height:20px;accent-color:var(--blue)}
+.msg{font-size:14px;margin:10px 0 0;color:var(--mute)}.bad{color:var(--red)}.ok{color:var(--green)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:14px}
+.slip{border:1.5px dashed #9fb0c8;border-radius:10px;padding:12px 10px 10px;text-align:center;background:#fff;cursor:zoom-in;break-inside:avoid;page-break-inside:avoid}
+.slip .nm{font-weight:700;font-size:17px}
+.slip svg{display:block;margin:6px auto;width:150px;height:150px}
+.slip .how{font-size:11.5px;line-height:1.45;color:var(--mute)}
+.slip .warn{font-size:12px;color:var(--red);font-weight:600;margin-top:4px}
+.pinslip{cursor:default;display:flex;flex-direction:column;justify-content:center;min-height:96px}
+.pinslip .pv{font-size:30px;font-weight:700;letter-spacing:.25em;font-variant-numeric:tabular-nums;color:var(--blue)}
+.ttl{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline;margin-top:22px}
+.ov{position:fixed;inset:0;background:rgba(15,20,32,.72);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
+.ov .box{background:#fff;border-radius:18px;padding:22px;text-align:center;max-width:94vw}
+.ov svg{width:min(78vmin,560px);height:min(78vmin,560px);display:block;margin:10px auto}
+.ov .nm{font-size:24px;font-weight:700}
+.hidden{display:none}
+@media print{
+  @page{size:A4;margin:10mm}
+  .noprint,.ov{display:none!important}
+  .wrap{max-width:none;padding:0}
+  .grid{grid-template-columns:repeat(3,1fr);gap:4mm;margin:0}
+  .slip{border-color:#888;cursor:default}
+  .slip{padding:2.5mm 2mm 2mm}
+  .slip .nm{font-size:13pt}
+  .slip svg{width:36mm;height:36mm;margin:1.5mm auto}
+  .slip .how{font-size:8pt;line-height:1.35}
+  .pinslip{min-height:0;padding:4mm 2mm}
+  .ttl{margin:0 0 3mm}
+  #pinsec{break-before:page;page-break-before:always}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="noprint">
+    <h1>QR 쪽지 만들기 <span style="font-size:.55em;color:var(--mute)">선생님용</span></h1>
+    <p class="sub">붙여넣은 내용은 이 컴퓨터 화면 안에서만 쓰이고, 어디에도 저장하거나 보내지 않아요. 창을 닫으면 사라져요.</p>
+    <section class="card">
+      <h2>엑셀에서 복사해 붙여넣기</h2>
+      <ol>
+        <li>엑셀 <b>[학생 링크]</b> 탭에서 학생 행의 <b>A~E열</b>(번호 · 성명 · 가내신 · 비밀번호 · 개인 링크)을 드래그해서 복사(Ctrl+C)해요. 몇 명만 골라도 돼요.</li>
+        <li>아래 칸에 붙여넣고(Ctrl+V) <b>쪽지 만들기</b>를 눌러요.</li>
+        <li>쪽지를 눌러 크게 띄워 상담 때 바로 찍게 하거나, <b>인쇄</b>해서 잘라 주세요.</li>
+      </ol>
+      <textarea id="src" spellcheck="false" placeholder="여기에 붙여넣기 (Ctrl+V)" aria-label="엑셀에서 복사한 학생 링크"></textarea>
+      <div class="row">
+        <button id="make">쪽지 만들기</button>
+        <label class="ck"><input type="checkbox" id="withpin"> 비밀번호 쪽지도 만들기 (다른 장에 따로 인쇄)</label>
+        <button id="print" class="ghost hidden">인쇄</button>
+        <button id="clear" class="ghost">지우기</button>
+      </div>
+      <p class="msg" id="msg"></p>
+    </section>
+  </div>
+  <section id="qrsec" class="hidden">
+    <div class="ttl"><h2 style="margin:0">QR 쪽지</h2><span class="sub noprint">쪽지를 누르면 크게 보여요</span></div>
+    <div class="grid" id="grid"></div>
+  </section>
+  <section id="pinsec" class="hidden">
+    <div class="ttl"><h2 style="margin:0">비밀번호 쪽지</h2><span class="sub">QR 쪽지와 따로 보관하라고 알려 주세요</span></div>
+    <div class="grid" id="pgrid"></div>
+  </section>
+</div>
+<div class="ov hidden" id="ov" role="dialog" aria-modal="true" aria-label="크게 보기"><div class="box"><div class="nm" id="ovn"></div><div id="ovq"></div>
+  <p class="sub">휴대폰 카메라로 찍은 뒤 비밀번호 4자리를 넣어요</p><button id="ovx" class="ghost" style="margin-top:10px">닫기 (Esc)</button></div></div>
+<script>
+// 작은 QR 인코더 (오류정정 M, 버전 1~10, 바이트·숫자 모드 섞어 쓰기)
+// makeQR([{mode:'byte',data:'https://...#e'},{mode:'num',data:'0123...'}]) → [[true/false,...],...]
+var QRENC = (function () {
+  var BLOCKS = {1:[[26,16]],2:[[44,28]],3:[[70,44]],4:[[50,32],[50,32]],5:[[67,43],[67,43]],
+    6:[[43,27],[43,27],[43,27],[43,27]],7:[[49,31],[49,31],[49,31],[49,31]],
+    8:[[60,38],[60,38],[61,39],[61,39]],9:[[58,36],[58,36],[58,36],[59,37],[59,37]],
+    10:[[69,43],[69,43],[69,43],[69,43],[70,44]]};
+  var ALIGN = {1:[],2:[6,18],3:[6,22],4:[6,26],5:[6,30],6:[6,34],7:[6,22,38],8:[6,24,42],9:[6,26,46],10:[6,28,50]};
+  var EXP = new Array(512), LOG = new Array(256);
+  (function () { var x = 1; for (var i = 0; i < 255; i++) { EXP[i] = x; LOG[x] = i; x <<= 1; if (x & 256) x ^= 0x11d; }
+    for (i = 255; i < 512; i++) EXP[i] = EXP[i - 255]; })();
+  function gmul(a, b) { return a && b ? EXP[LOG[a] + LOG[b]] : 0; }
+  function rsGen(n) { var g = [1]; for (var i = 0; i < n; i++) { var ng = new Array(g.length + 1).fill(0);
+      for (var j = 0; j < g.length; j++) { ng[j] ^= g[j]; ng[j + 1] ^= gmul(g[j], EXP[i]); } g = ng; } return g; }
+  function rsRem(data, n) { var g = rsGen(n), r = new Array(n).fill(0);
+    for (var i = 0; i < data.length; i++) { var f = data[i] ^ r[0]; r.shift(); r.push(0);
+      for (var j = 0; j < n; j++) r[j] ^= gmul(g[j + 1], f); } return r; }
+  function utf8(s) { return Array.from(unescape(encodeURIComponent(s))).map(function (c) { return c.charCodeAt(0); }); }
+  function bitsFor(segs, v) {
+    var b = [];
+    function put(val, len) { for (var i = len - 1; i >= 0; i--) b.push((val >>> i) & 1); }
+    segs.forEach(function (s) {
+      if (s.mode === 'num') { put(1, 4); put(s.data.length, v < 10 ? 10 : 12);
+        for (var i = 0; i < s.data.length; i += 3) { var g = s.data.substr(i, 3); put(parseInt(g, 10), g.length === 3 ? 10 : g.length === 2 ? 7 : 4); }
+      } else { var by = utf8(s.data); put(4, 4); put(by.length, v < 10 ? 8 : 16); by.forEach(function (x) { put(x, 8); }); }
+    });
+    return b;
+  }
+  function bchFormat(data) { var d = data << 10; for (var i = 14; i >= 10; i--) if ((d >> i) & 1) d ^= 0x537 << (i - 10);
+    return ((data << 10) | d) ^ 0x5412; }
+  function bchVersion(v) { var d = v << 12; for (var i = 17; i >= 12; i--) if ((d >> i) & 1) d ^= 0x1f25 << (i - 12);
+    return (v << 12) | d; }
+  var MASKS = [function (r, c) { return (r + c) % 2 === 0; }, function (r) { return r % 2 === 0; },
+    function (r, c) { return c % 3 === 0; }, function (r, c) { return (r + c) % 3 === 0; },
+    function (r, c) { return (Math.floor(r / 2) + Math.floor(c / 3)) % 2 === 0; },
+    function (r, c) { return (r * c) % 2 + (r * c) % 3 === 0; },
+    function (r, c) { return ((r * c) % 2 + (r * c) % 3) % 2 === 0; },
+    function (r, c) { return ((r + c) % 2 + (r * c) % 3) % 2 === 0; }];
+  function penalty(m) {
+    var n = m.length, p = 0, r, c, i, run, dark = 0;
+    for (r = 0; r < n; r++) for (var dir = 0; dir < 2; dir++) { run = 1;
+      for (c = 1; c <= n; c++) { var cur = c < n ? (dir ? m[c][r] : m[r][c]) : null, prev = dir ? m[c - 1][r] : m[r][c - 1];
+        if (cur === prev) run++; else { if (run >= 5) p += 3 + run - 5; run = 1; } } }
+    for (r = 0; r < n - 1; r++) for (c = 0; c < n - 1; c++) { var v = m[r][c];
+      if (v === m[r][c + 1] && v === m[r + 1][c] && v === m[r + 1][c + 1]) p += 3; }
+    var pat1 = [1,0,1,1,1,0,1,0,0,0,0], pat2 = [0,0,0,0,1,0,1,1,1,0,1];
+    for (r = 0; r < n; r++) for (c = 0; c <= n - 11; c++) for (var d2 = 0; d2 < 2; d2++) {
+      var ok1 = true, ok2 = true;
+      for (i = 0; i < 11; i++) { var x = (d2 ? m[c + i][r] : m[r][c + i]) ? 1 : 0; if (x !== pat1[i]) ok1 = false; if (x !== pat2[i]) ok2 = false; }
+      if (ok1) p += 40; if (ok2) p += 40; }
+    for (r = 0; r < n; r++) for (c = 0; c < n; c++) if (m[r][c]) dark++;
+    p += Math.floor(Math.abs(dark * 100 / (n * n) - 50) / 5) * 10;
+    return p;
+  }
+  function makeQR(segs) {
+    var v, bits, blocks, dataCount;
+    for (v = 1; v <= 10; v++) { blocks = BLOCKS[v]; dataCount = blocks.reduce(function (t, b) { return t + b[1]; }, 0);
+      bits = bitsFor(segs, v); if (bits.length <= dataCount * 8) break; }
+    if (v > 10) throw new Error('너무 긴 링크');
+    var cap = dataCount * 8;
+    for (var i = 0; i < 4 && bits.length < cap; i++) bits.push(0);
+    while (bits.length % 8) bits.push(0);
+    var bytes = []; for (i = 0; i < bits.length; i += 8) bytes.push(parseInt(bits.slice(i, i + 8).join(''), 2));
+    for (var pad = 0; bytes.length < dataCount; pad++) bytes.push(pad % 2 ? 0x11 : 0xEC);
+    var dBlocks = [], eBlocks = [], off = 0;
+    blocks.forEach(function (b) { var d = bytes.slice(off, off + b[1]); off += b[1]; dBlocks.push(d); eBlocks.push(rsRem(d, b[0] - b[1])); });
+    var cw = [], maxD = Math.max.apply(null, dBlocks.map(function (d) { return d.length; })), maxE = eBlocks[0].length;
+    for (i = 0; i < maxD; i++) dBlocks.forEach(function (d) { if (i < d.length) cw.push(d[i]); });
+    for (i = 0; i < maxE; i++) eBlocks.forEach(function (e) { cw.push(e[i]); });
+    var n = v * 4 + 17, base = [], fn = [];
+    for (i = 0; i < n; i++) { base.push(new Array(n).fill(false)); fn.push(new Array(n).fill(false)); }
+    function set(r, c, val) { base[r][c] = val; fn[r][c] = true; }
+    function finder(r0, c0) { for (var r = -1; r <= 7; r++) for (var c = -1; c <= 7; c++) { var rr = r0 + r, cc = c0 + c;
+        if (rr < 0 || cc < 0 || rr >= n || cc >= n) continue;
+        set(rr, cc, r >= 0 && r <= 6 && c >= 0 && c <= 6 && (r === 0 || r === 6 || c === 0 || c === 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4))); } }
+    finder(0, 0); finder(0, n - 7); finder(n - 7, 0);
+    for (i = 8; i < n - 8; i++) { set(6, i, i % 2 === 0); set(i, 6, i % 2 === 0); }
+    var al = ALIGN[v];
+    al.forEach(function (r) { al.forEach(function (c) { if ((r <= 8 && c <= 8) || (r <= 8 && c >= n - 9) || (r >= n - 9 && c <= 8)) return;
+      for (var dr = -2; dr <= 2; dr++) for (var dc = -2; dc <= 2; dc++)
+        set(r + dr, c + dc, Math.max(Math.abs(dr), Math.abs(dc)) !== 1); }); });
+    set(n - 8, 8, true);
+    for (i = 0; i < 9; i++) { if (!fn[8][i]) set(8, i, false); if (!fn[i][8]) set(i, 8, false); }
+    for (i = 0; i < 8; i++) { set(8, n - 1 - i, false); set(n - 1 - i, 8, false); }
+    set(n - 8, 8, true);
+    if (v >= 7) { var vb = bchVersion(v); for (i = 0; i < 18; i++) { var bit = ((vb >> i) & 1) === 1;
+        set(Math.floor(i / 3), n - 11 + i % 3, bit); set(n - 11 + i % 3, Math.floor(i / 3), bit); } }
+    var data = []; cw.forEach(function (b) { for (var k = 7; k >= 0; k--) data.push(((b >> k) & 1) === 1); });
+    var pos = [], up = true;
+    for (var col = n - 1; col > 0; col -= 2) { if (col === 6) col--;
+      for (var k = 0; k < n; k++) { var row = up ? n - 1 - k : k;
+        for (var j = 0; j < 2; j++) { var cc = col - j; if (!fn[row][cc]) pos.push([row, cc]); } }
+      up = !up; }
+    var best = null, bestP = Infinity;
+    for (var mk = 0; mk < 8; mk++) {
+      var m = base.map(function (r) { return r.slice(); });
+      pos.forEach(function (p, idx) { var d = idx < data.length ? data[idx] : false; m[p[0]][p[1]] = d !== MASKS[mk](p[0], p[1]); });
+      var fb = bchFormat((0 << 3) | mk);   // 오류정정 M = 00
+      for (i = 0; i < 15; i++) { var b2 = ((fb >> i) & 1) === 1;
+        if (i < 6) m[i][8] = b2; else if (i < 8) m[i + 1][8] = b2; else m[n - 15 + i][8] = b2;
+        if (i < 8) m[8][n - 1 - i] = b2; else if (i < 9) m[8][15 - i] = b2; else m[8][14 - i] = b2; }
+      m[n - 8][8] = true;
+      var pp = penalty(m); if (pp < bestP) { bestP = pp; best = m; }
+    }
+    return best;
+  }
+  function toSVG(m, px) { var n = m.length, q = 4, s = (n + 2 * q), path = '';
+    for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) if (m[r][c]) path += 'M' + (c + q) + ' ' + (r + q) + 'h1v1h-1z';
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + s + ' ' + s + '" width="' + (px || s * 4) + '" height="' + (px || s * 4) +
+      '" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="' + path + '" fill="#000"/></svg>'; }
+  return { makeQR: makeQR, toSVG: toSVG };
+})();
+
+{
+const LA=[72168279211,54200988714,42810888808,24150161745,58997541179,84072685424,30565657600,65205470397,37364633602];
+const LB=[629745359,994988973,180496548,714957368,879887747,353849164,864476285,929980374,949856363];
+function unlockOK(enc,pin){
+  pin=+pin;if(!/^\d{81}$/.test(enc)||!(pin>=1000&&pin<=9999))return false;
+  const M=1e9,ch=[];for(let j=0;j<9;j++){const key=(pin*LA[j]+LB[j])%M;ch.push(((+enc.slice(9*j,9*j+9)-key)%M+M)%M);}
+  let sum=0;for(let j=0;j<8;j++)sum+=ch[j]*(2*j+3);
+  if(sum%999999937!==ch[8])return false;
+  const s=ch.slice(0,8).map(c=>String(c).padStart(9,'0')).join('');return s.endsWith('000')&&s[0]==='1';
+}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function parseRows(text){
+  const out=[];
+  String(text||'').split(/\r?\n/).forEach(line=>{
+    const m=line.match(/(https?:\/\/[^\s"]+?#e)(\d{81})(?!\d)/);if(!m)return;
+    const cells=line.split('\t').map(x=>x.trim().replace(/^"|"$/g,''));
+    let no=/^\d{1,2}$/.test(cells[0])?cells[0]:'';
+    let name=cells[1]&&!/^https?:/.test(cells[1])&&!/^\d/.test(cells[1])?cells[1]:'';
+    if(!name){const k=line.match(/([가-힣A-Za-z]{1,10}) 학생,/);if(k)name=k[1];}
+    const pinCell=cells.slice(1).find(x=>/^\d{4}$/.test(x));
+    out.push({no,name,prefix:m[1],enc:m[2],pin:pinCell||'',link:m[1]+m[2]});
+  });
+  return out;
+}
+let ROWS=[];
+function qrSVG(r){return QRENC.toSVG(QRENC.makeQR([{mode:'byte',data:r.prefix},{mode:'num',data:r.enc}]));}
+function make(){
+  const msg=$('msg');ROWS=parseRows($('src').value);
+  if(!ROWS.length){msg.textContent='개인 링크를 찾지 못했어요. [학생 링크] 탭의 A~E열을 복사했는지 확인해 주세요.';msg.className='msg bad';
+    $('qrsec').classList.add('hidden');$('pinsec').classList.add('hidden');$('print').classList.add('hidden');return;}
+  let bad=0,nopin=0;
+  $('grid').innerHTML=ROWS.map((r,i)=>{
+    const chk=r.pin?unlockOK(r.enc,r.pin):null;if(chk===false)bad++;if(!r.pin)nopin++;
+    const who=(r.no?esc(r.no)+'번 ':'')+esc(r.name||'');
+    return `<div class="slip" data-i="${i}" tabindex="0" role="button" aria-label="${who} QR 크게 보기"><div class="nm">${who||'&nbsp;'}</div>${qrSVG(r)}`+
+      `<div class="how">휴대폰 카메라로 찍고<br>선생님께 <b>따로</b> 받은<br>비밀번호 4자리를 넣으세요 · 본인만 보세요</div>`+
+      (chk===false?'<div class="warn noprint">비밀번호와 링크가 맞지 않아요</div>':'')+`</div>`;}).join('');
+  const wp=$('withpin').checked&&ROWS.some(r=>r.pin);
+  $('pgrid').innerHTML=wp?ROWS.filter(r=>r.pin).map(r=>`<div class="slip pinslip"><div class="nm">${r.no?esc(r.no)+'번 ':''}${esc(r.name||'')}</div><div class="pv">${esc(r.pin)}</div><div class="how">내 가내신 계산기 비밀번호<br>링크와 따로 보관하세요</div></div>`).join(''):'';
+  $('qrsec').classList.remove('hidden');$('pinsec').classList.toggle('hidden',!wp);$('print').classList.remove('hidden');
+  msg.innerHTML=`${ROWS.length}명 쪽지를 만들었어요.`+(bad?` <span class="bad">${bad}명은 비밀번호와 링크가 맞지 않아요 — 엑셀에서 비밀번호를 바꾼 뒤 다시 복사해 주세요.</span>`:'')+
+    (nopin&&!bad?` <span class="sub">(비밀번호 칸이 없는 줄 ${nopin}개는 확인 없이 만들었어요)</span>`:'')+(!bad&&!nopin?' <span class="ok">비밀번호 확인 완료.</span>':'');
+  msg.className='msg';
+}
+function openBig(i){const r=ROWS[i];if(!r)return;$('ovn').textContent=(r.no?r.no+'번 ':'')+(r.name||'');$('ovq').innerHTML=qrSVG(r);$('ov').classList.remove('hidden');$('ovx').focus();}
+function closeBig(){$('ov').classList.add('hidden');$('ovq').innerHTML='';}
+$('make').addEventListener('click',make);
+$('withpin').addEventListener('change',()=>{if(ROWS.length)make();});
+$('print').addEventListener('click',()=>window.print());
+$('clear').addEventListener('click',()=>{$('src').value='';ROWS=[];$('grid').innerHTML='';$('pgrid').innerHTML='';$('qrsec').classList.add('hidden');$('pinsec').classList.add('hidden');$('print').classList.add('hidden');$('msg').textContent='';});
+$('src').addEventListener('paste',()=>setTimeout(make,0));
+$('grid').addEventListener('click',e=>{const s=e.target.closest('.slip');if(s)openBig(+s.dataset.i);});
+$('grid').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const s=e.target.closest('.slip');if(s){e.preventDefault();openBig(+s.dataset.i);}}});
+$('ovx').addEventListener('click',closeBig);$('ov').addEventListener('click',e=>{if(e.target===$('ov'))closeBig();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeBig();});
+window.__qr={parseRows,unlockOK,make};
+}
+</script>
+</body>
+</html>
