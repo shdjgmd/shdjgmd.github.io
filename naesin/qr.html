@@ -220,10 +220,13 @@ function unlockOK(enc,pin){
 }
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let SKIP=[];
 function parseRows(text){
-  const out=[];
+  const out=[];SKIP=[];
   String(text||'').split(/\r?\n/).forEach(line=>{
-    const m=line.match(/(https?:\/\/[^\s"]+?#e)(\d{81})(?!\d)/);if(!m)return;
+    const m=line.match(/(https?:\/\/[^\s"]+?#e)(\d{81})(?!\d)/);
+    if(!m){const c=line.split('\t').map(x=>x.trim());   // 번호·이름은 있는데 링크가 없는 줄 (비밀번호 빈칸 등)
+      if(/^\d{1,2}$/.test(c[0]||'')&&c[1]&&!/^https?:/.test(c[1]))SKIP.push(c[0]+'번 '+c[1]);return;}
     const cells=line.split('\t').map(x=>x.trim().replace(/^"|"$/g,''));
     let no=/^\d{1,2}$/.test(cells[0])?cells[0]:'';
     let name=cells[1]&&!/^https?:/.test(cells[1])&&!/^\d/.test(cells[1])?cells[1]:'';
@@ -237,7 +240,7 @@ let ROWS=[];
 function qrSVG(r){return QRENC.toSVG(QRENC.makeQR([{mode:'byte',data:r.prefix},{mode:'num',data:r.enc}]));}
 function make(){
   const msg=$('msg');ROWS=parseRows($('src').value);
-  if(!ROWS.length){msg.textContent='개인 링크를 찾지 못했어요. [학생 링크] 탭의 A~E열을 복사했는지 확인해 주세요.';msg.className='msg bad';
+  if(!ROWS.length){msg.textContent='개인 링크를 찾지 못했어요. [학생 링크] 탭의 A~E열을 복사했는지 확인해 주세요.'+(SKIP.length?` (링크가 없는 학생 ${SKIP.length}명: 비밀번호 칸을 확인해 주세요)`:'');msg.className='msg bad';
     $('qrsec').classList.add('hidden');$('pinsec').classList.add('hidden');$('print').classList.add('hidden');return;}
   let bad=0,nopin=0;
   $('grid').innerHTML=ROWS.map((r,i)=>{
@@ -251,6 +254,7 @@ function make(){
   $('qrsec').classList.remove('hidden');$('pinsec').classList.toggle('hidden',!wp);$('print').classList.remove('hidden');
   msg.innerHTML=`${ROWS.length}명 쪽지를 만들었어요.`+(bad?` <span class="bad">${bad}명은 비밀번호와 링크가 맞지 않아요 — 엑셀에서 비밀번호를 바꾼 뒤 다시 복사해 주세요.</span>`:'')+
     (nopin&&!bad?` <span class="sub">(비밀번호 칸이 없는 줄 ${nopin}개는 확인 없이 만들었어요)</span>`:'')+(!bad&&!nopin?' <span class="ok">비밀번호 확인 완료.</span>':'');
+  if(SKIP.length)msg.innerHTML+=` <span class="bad">링크가 없어 건너뛴 학생 ${SKIP.length}명: ${SKIP.map(esc).join(', ')} — [학생 링크] 탭에 비밀번호(1000~9999)가 들어 있는지 확인해 주세요.</span>`;
   msg.className='msg';
 }
 function openBig(i){const r=ROWS[i];if(!r)return;$('ovn').textContent=(r.no?r.no+'번 ':'')+(r.name||'');$('ovq').innerHTML=qrSVG(r);$('ov').classList.remove('hidden');$('ovx').focus();}

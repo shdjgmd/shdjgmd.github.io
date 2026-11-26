@@ -161,7 +161,6 @@ details li{margin:6px 0}
   </details>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
 {
 const ACT=['1-2','2-1','2-2','3-1','3-2'];
@@ -304,7 +303,13 @@ function renderTarget(){
     return `<div class="sitem"><div class="srow"><b>${esc(nm)}</b><span class="sub">참고 ${esc(v)}</span><button class="x" data-i="${i}" aria-label="${esc(nm)} 지우기">지우기</button></div>`+
       `<div class="srow2">지금 차이 <span class="${d>=0?'up':'down'}">${esc(sgn(d))}</span> · 넘으려면 <span class="need ${n.k}">${esc(n.t)}</span></div></div>`;}).join('');
 }
+let jsqrP=null;
+function loadJsQR(){   // QR 사진 읽기 도구(jsQR 1.4.0, Apache-2.0)는 이 사이트 안의 파일을 필요할 때만 불러옴
+  if(typeof jsQR==='function')return Promise.resolve();
+  return jsqrP||(jsqrP=new Promise(res=>{const sc=document.createElement('script');sc.src='jsQR.js';sc.onload=res;sc.onerror=()=>{jsqrP=null;res();};document.head.appendChild(sc);}));
+}
 async function readQR(file){
+  await loadJsQR();
   if(typeof jsQR!=='function'){setMsg('QR 읽기 도구를 불러오지 못했어요. 선생님이 보낸 링크를 붙여넣어 주세요.','bad');return;}
   setMsg('사진에서 QR을 찾는 중…');
   const url=URL.createObjectURL(file);
