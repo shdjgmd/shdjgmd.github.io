@@ -52,6 +52,9 @@ input[type=range]{flex:1 1 220px;accent-color:var(--blue);height:44px}
 .up{color:var(--green);font-weight:700}.down{color:var(--red);font-weight:700}
 .need{font-weight:700;white-space:nowrap}.need.no{color:var(--red)}.need.yes{color:var(--green)}
 .demo{font-size:13px;color:var(--gold);font-weight:600;margin:0 0 6px}
+
+.sitem{border-top:1px solid var(--line);padding:10px 0}.srow{display:flex;gap:10px;align-items:center}.srow b{flex:1 1 auto;overflow-wrap:anywhere;font-size:17px}.srow .sub,.srow button{white-space:nowrap;flex:none}.srow2{margin-top:4px;font-size:15px;font-variant-numeric:tabular-nums}
+button.x{min-height:36px;padding:0 10px;font-size:14px;background:transparent;color:var(--mute);border-color:var(--line)}
 details{margin-top:18px;color:var(--mute);font-size:14px}summary{cursor:pointer;font-weight:600;color:var(--ink);min-height:44px;display:flex;align-items:center}
 details li{margin:6px 0}
 .hidden{display:none}
@@ -109,8 +112,20 @@ details li{margin:6px 0}
     <div class="row"><label for="tg" class="label" style="font-size:15px">목표 가내신</label>
       <input type="number" id="tg" step="0.1" min="0" max="200" value="190" style="width:120px"></div>
     <p id="tgr" style="font-size:18px;font-weight:600;margin:12px 0 6px"></p>
-    <table style="margin-top:8px"><thead><tr><th>학교</th><th class="n">참고 점수</th><th class="n">지금 차이</th><th class="n">넘으려면 (남은 학기)</th></tr></thead><tbody id="sch"></tbody></table>
-    <p class="sub" style="margin-top:10px;font-size:13px">참고 점수는 예전(2026학년도) 기준 예상치라 봉사 점수가 있던 시절 자료예요. 실제 합격선과 다를 수 있으니 담임 선생님과 꼭 함께 확인하세요.</p>
+    <p class="sub" style="font-size:13px">남은 학기 모든 과목을 같은 점수로 받는다고 할 때, 목표 이상이 되는 가장 낮은 점수예요.</p>
+  </section>
+
+  <section class="card">
+    <h2>내가 넣은 학교와 비교하기 <span class="sub" style="font-size:14px;font-weight:400">(선택)</span></h2>
+    <p class="sub" style="margin-bottom:12px">가고 싶은 학교와 참고 점수를 직접 넣으면 지금 가내신과 비교해 줘요. 참고 점수는 공식 합격선이 아니니 담임 선생님과 꼭 확인하세요. 넣은 목록은 이 휴대폰에만 저장돼요.</p>
+    <form class="row" id="addf">
+      <input type="text" id="sn" placeholder="학교 이름" maxlength="20" style="flex:1 1 140px" aria-label="학교 이름">
+      <input type="number" id="sv" placeholder="참고 점수" step="0.01" min="0" max="200" style="width:120px" aria-label="참고 점수">
+      <button type="submit">추가</button>
+    </form>
+    <p class="msg" id="smsg"></p>
+    <div id="sch" style="margin-top:8px"></div>
+    <p class="sub" id="sempty" style="font-size:13px;margin:10px 0 0">아직 넣은 학교가 없어요.</p>
   </section>
 
   <details>
@@ -120,6 +135,7 @@ details li{margin:6px 0}
       <li>체육·예술 30점 = 10 + 20 × (3×A + 2×B + C) ÷ (3 × 과목 수). "전과목 ○○점"일 때 남은 학기 체육·예술은 80점 이상 A, 60점 이상 B, 그 밖은 C로 봐요.</li>
       <li>출결 40점과 학교활동 10점은 선생님이 넣어 준 지금 점수 그대로예요.</li>
       <li>"넘으려면"은 남은 학기 모든 과목을 같은 점수로 받는다고 할 때 목표 이상이 되는 가장 낮은 점수예요.</li>
+      <li>이 계산기는 상담용 예상치예요. 실제 고입 내신과 학교별 합격선은 담임 선생님과 확인하세요.</li>
     </ul>
   </details>
 </div>
@@ -131,7 +147,8 @@ const ACT=['1-2','2-1','2-2','3-1','3-2'];
 const COEF={'1-2':[12,4,0.8,0.04],'2-1':[24,8,1.6,0.08],'2-2':[24,8,1.6,0.08],'3-1':[30,10,2,0.1],'3-2':[30,10,2,0.1]};
 const SRC={'1-2':['1-2','2-1'],'2-1':['2-1','2-2'],'2-2':['2-2','2-1'],'3-1':['3-1','2-1','2-2'],'3-2':['3-2','3-1','2-2','2-1']};
 const NAME={'1-2':'1학년 2학기','2-1':'2학년 1학기','2-2':'2학년 2학기','3-1':'3학년 1학기','3-2':'3학년 2학기'};
-const SCHOOLS=[['장기고',194.1],['통진고',188.9],['운양고',183.8],['운유고',182.9],['하성고',180.4],['김포고',176],['사우고',168.7],['김포제일고',167.1],['고촌고',160.6],['풍무고',151.3],['김포호수고',126.63]];
+let SCHOOLS=[];try{SCHOOLS=JSON.parse(localStorage.getItem('gn-schools')||'[]').filter(x=>Array.isArray(x)&&x.length===2)}catch(e){SCHOOLS=[]}
+const saveSchools=()=>{try{localStorage.setItem('gn-schools',JSON.stringify(SCHOOLS))}catch(e){}};
 const DEMO='1'+'080720036200'+'080704034210'+'0'.repeat(36)+'40000'+'085';   // 예시 학생(가상)
 const r3=x=>Math.round(parseFloat((x*1000).toPrecision(15)))/1000;
 const f2=x=>(Math.round(parseFloat((x*100).toPrecision(15)))/100).toFixed(2);
@@ -210,10 +227,11 @@ function renderTarget(){
   const T=parseFloat($('tg').value);
   if(isFinite(T)){const n=R.need(T);$('tgr').innerHTML=`${esc(T)}점을 넘으려면 → <span class="need ${n.k}">${esc(n.t)}</span>`;}
   else $('tgr').textContent='';
-  $('sch').innerHTML=SCHOOLS.map(([nm,v])=>{const d=R.total-v,n=R.need(v);
-    return `<tr><td>${esc(nm)}</td><td class="n">${esc(v)}</td><td class="n ${d>=0?'up':'down'}">${esc(sgn(d))}</td><td class="n"><span class="need ${n.k}">${esc(n.t)}</span></td></tr>`;}).join('');
+  $('sempty').style.display=SCHOOLS.length?'none':'';
+  $('sch').innerHTML=SCHOOLS.map(([nm,v],i)=>{const d=R.total-v,n=R.need(v);
+    return `<div class="sitem"><div class="srow"><b>${esc(nm)}</b><span class="sub">참고 ${esc(v)}</span><button class="x" data-i="${i}" aria-label="${esc(nm)} 지우기">지우기</button></div>`+
+      `<div class="srow2">지금 차이 <span class="${d>=0?'up':'down'}">${esc(sgn(d))}</span> · 넘으려면 <span class="need ${n.k}">${esc(n.t)}</span></div></div>`;}).join('');
 }
-
 async function readQR(file){
   if(typeof jsQR!=='function'){setMsg('QR 읽기 도구를 불러오지 못했어요. 코드를 붙여넣어 주세요.','bad');return;}
   setMsg('사진에서 QR을 찾는 중…');
@@ -238,6 +256,13 @@ $('code').addEventListener('keydown',e=>{if(e.key==='Enter')load($('code').value
 $('xr').addEventListener('input',()=>{$('xn').value=$('xr').value;renderX();});
 $('xn').addEventListener('input',()=>{const v=+$('xn').value;if(v>=40&&v<=100)$('xr').value=v;renderX();});
 $('tg').addEventListener('input',renderTarget);
+$('addf').addEventListener('submit',e=>{e.preventDefault();
+  const nm=$('sn').value.trim(),v=parseFloat($('sv').value),m=$('smsg');
+  if(!nm){m.textContent='학교 이름을 넣어 주세요.';m.className='msg bad';return;}
+  if(!isFinite(v)||v<0||v>200){m.textContent='참고 점수는 0~200 사이 숫자로 넣어 주세요.';m.className='msg bad';return;}
+  if(SCHOOLS.length>=12){m.textContent='학교는 12개까지 넣을 수 있어요.';m.className='msg bad';return;}
+  SCHOOLS.push([nm.slice(0,20),Math.round(v*100)/100]);saveSchools();$('sn').value='';$('sv').value='';m.textContent='';renderTarget();});
+$('sch').addEventListener('click',e=>{const b=e.target.closest('button.x');if(!b)return;SCHOOLS.splice(+b.dataset.i,1);saveSchools();renderTarget();});
 
 const fromHash=()=>{const m=decodeURIComponent(location.hash||'').match(/1\d{68}/);return m?m[0]:null;};
 window.addEventListener('hashchange',()=>{const h=fromHash();if(h)load(h,true);});
